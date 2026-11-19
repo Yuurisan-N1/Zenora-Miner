@@ -1,0 +1,16 @@
+/target/
+dist/
+*.log
+*.rs.bk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+state/
+session.json
+*.pem
+src/api/
+src/net/solver.rs
+src/domain/session.rs
+src/ops/auth/passkey.rs
+src/support/consts/net.rs
