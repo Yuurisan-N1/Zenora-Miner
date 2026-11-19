@@ -7,15 +7,15 @@ MY_PROJECT = "Zenora Miner"
 
 RELEASES = [
   {
-    name: "Zenora Linux ARM64",
-    filename: "zenora-linux-arm64",
-    url: "https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-linux-arm64",
+    name: "Zenora macos aarch64",
+    filename: "zenora-bot-macos-aarch64",
+    url: "https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-bot-macos-aarch64",
     chmod: true,
   },
   {
-    name: "Zenora Linux AMD64",
+    name: "Zenora linux x86_64",
     filename: "zenora-linux-amd64",
-    url: "https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-linux-amd64",
+    url: "https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-bot-linux-x86_64",
     chmod: true,
   },
   {
