@@ -1,0 +1,27 @@
+ZENORA MINER QUICK START
+
+1. Install Rust:  https://rustup.rs
+2. Put your accounts in data.txt, one per line:
+
+       email@gmail.com|password
+
+3. Optional: put proxies in proxy.txt, one per line:
+
+       http://user:pass@host:port
+
+   Leave the file empty for a direct connection.
+
+4. Check the interval in config.json (sleep_seconds, default 3600).
+
+5. Check the solver endpoint in solver/solver.yaml.
+
+6. Start:
+
+       ./run.sh run
+
+   First run asks for the email code once per account, then caches the passkey in
+   session.json so later runs never ask again.
+
+7. Stop with Ctrl+C.
+
+Other modes: ./run.sh probe, ./run.sh selftest, ./run.sh bg, ./run.sh screen, ./run.sh stop

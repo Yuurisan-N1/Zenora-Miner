@@ -6,6 +6,7 @@
 
 <p>
   <img alt="ruby" src="https://img.shields.io/badge/Ruby-3.0+-CC342D?logo=ruby&logoColor=white"/>
+  <img alt="rust" src="https://img.shields.io/badge/Rust-1.70+-000000?logo=rust&logoColor=white"/>
   <img alt="platform" src="https://img.shields.io/badge/Platform-Zenora%20Miner-111111"/>
   <img alt="multi-account" src="https://img.shields.io/badge/Multi--Account-Supported-111111"/>
   <img alt="proxy" src="https://img.shields.io/badge/Proxy-Supported-111111"/>
@@ -14,7 +15,7 @@
 
 <p>
   <b>Zenora Miner Bot</b> is a full automation bot for the Zenora Miner web app.<br/>
-  It handles the complete daily cycle: opening solver worker to solve the Cloudflare Turnstile challenge before each login, enrolling a passkey for each account once and caching it in <code>session.json</code>, counting the daily streak, starting a fresh mining block when the state is idle, claiming every ready session through the rewarded advertisement flow signed with the cached passkey, claiming available airdrop and giveaway rewards, completing ad-gated sponsored tasks, and reporting the final wallet balance and total claimed, all running across multiple accounts with proxy support and a live countdown between cycles.<br/>
+  It handles the complete daily cycle opening an Cloudflare Turnstile challenge before each login, enrolling a passkey for each account once and caching it in <code>session.json</code>, counting the daily streak, starting a fresh mining block when the state is idle, claiming every ready session through the rewarded advertisement flow signed with the cached passkey, claiming available airdrop and giveaway rewards, completing ad-gated sponsored tasks, and reporting the final wallet balance and total claimed, all running across multiple accounts with proxy support and a live countdown between cycles.<br/>
   Built and distributed by <b>Yuurisandesu</b>.
 </p>
 
@@ -37,7 +38,8 @@
 
 ## Requirements
 
-- Ruby `3.0+`
+- Rust `1.70+`
+- Ruby `3.0+` (only needed to run the downloader `bot.rb`)
 - Git
 - A running Turnstile solver worker with the URL set in `solver/solver.yaml`
 
@@ -45,25 +47,49 @@
 
 ## Installation
 
-**Install Ruby:**
+### Install Rust
 
-### Linux / macOS
+#### Linux / macOS / Android (Termux)
 
 ```bash
-# Ubuntu / Debian
-sudo apt install ruby
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+```
 
-# macOS
+#### Windows
+
+Download and run the installer from https://rustup.rs
+
+After installing, restart your terminal and verify:
+
+```bash
+rustc --version
+cargo --version
+```
+
+---
+
+### Install Ruby
+
+#### Ubuntu / Debian
+
+```bash
+sudo apt install ruby
+```
+
+#### macOS
+
+```bash
 brew install ruby
 ```
 
-### Android (Termux)
+#### Android (Termux)
 
 ```bash
 pkg install ruby
 ```
 
-### Windows
+#### Windows
 
 Download and run the installer from https://rubyinstaller.org
 
@@ -84,20 +110,26 @@ ruby bot.rb
 
 The downloader will show a numbered menu. Enter the number that matches your platform and the binary will be downloaded automatically with a live progress bar showing the percentage, MB downloaded, and total size. For Linux binaries, file permissions are set to executable automatically after the download completes.
 
+**Or build from source:**
+
+```bash
+./run.sh build
+```
+
 **Or download manually from the releases page:**
 
 | Platform | Filename | Download |
 |---|---|---|
-| Linux ARM64 | `zenora-linux-arm64` | [Download](https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-linux-arm64) |
-| Linux AMD64 | `zenora-linux-amd64` | [Download](https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-linux-amd64) |
+| macOS aarch64 | `zenora-bot-macos-aarch64` | [Download](https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-bot-macos-aarch64) |
+| Linux x86_64 | `zenora-bot-linux-x86_64` | [Download](https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-bot-linux-x86_64) |
 | Windows x86_64 | `zenora-windows-x86_64.exe` | [Download](https://github.com/Yuurisan-N1/Zenora-Miner/releases/latest/download/zenora-windows-x86_64.exe) |
 
-If you download the Linux binary manually, you need to set it as executable before running:
+If you download the Linux or macOS binary manually, you need to set it as executable before running:
 
 ```bash
-chmod +x zenora-linux-arm64
+chmod +x zenora-bot-linux-x86_64
 # or
-chmod +x zenora-linux-amd64
+chmod +x zenora-bot-macos-aarch64
 ```
 
 ---
@@ -134,7 +166,7 @@ Fill in the URL of your Turnstile solver worker. The bot reads the `solver.url` 
 
 ```yaml
 solver:
-  url: https://your-solver-worker.trycloudflare.com
+  url: https://solver.yuurisan.my.id
 ```
 
 If `solver/solver.yaml` is missing or the URL is empty, the bot will refuse to start.
@@ -157,11 +189,11 @@ If `solver/solver.yaml` is missing or the URL is empty, the bot will refuse to s
 
 Each account must have a passkey enrolled before the bot can claim mining sessions. The enrollment is done once per account and the passkey is cached in `session.json`. After that, all future runs reuse the cached passkey automatically.
 
-**Step 1 Add your accounts to `data.txt`.**
+**Step 1 - Add your accounts to `data.txt`.**
 
-**Step 2 Set the solver URL in `solver/solver.yaml`.**
+**Step 2 - Set the solver URL in `solver/solver.yaml`.**
 
-**Step 3 Run the bot.**
+**Step 3 - Run the bot.**
 
 On the first run, for each account that has no cached passkey, the bot will:
 
@@ -177,31 +209,25 @@ After the OTP step, the passkey is cached and the bot continues the cycle automa
 
 ## Running the Bot
 
-**Linux ARM64:**
+All modes are launched through `run.sh`. The script builds the binary automatically if it is missing or outdated before starting.
 
-```bash
-./zenora-linux-arm64
-```
+| Command | Description |
+|---|---|
+| `./run.sh run` | Run in the foreground |
+| `./run.sh bg` | Run in the background with nohup, logs to `zenora-miner-bot.log` |
+| `./run.sh screen` | Run inside a screen session |
+| `./run.sh probe` | Check account status without running a full cycle |
+| `./run.sh selftest` | Run a self-test to verify the setup |
+| `./run.sh stop` | Stop the running bot |
+| `./run.sh build` | Build the release binary only |
 
-**Linux AMD64:**
-
-```bash
-./zenora-linux-amd64
-```
-
-**Windows:**
-
-```bash
-zenora-windows-x86_64.exe
-```
-
-Press `Ctrl+C` at any time to stop the bot cleanly.
+Press `Ctrl+C` at any time to stop the bot cleanly when running in the foreground.
 
 ---
 
 ## Features
 
-### Auto Solver Cloudflare
+### Encrypted Solver Channel
 Before each login the bot opens a secure channel to the solver worker, submits the Turnstile task, and polls for the solved token. If the token cannot be obtained after the polling window, the account is skipped for that cycle.
 
 ### Auto Passkey Enrollment
@@ -240,16 +266,86 @@ After all accounts complete a cycle, the bot displays a live `HH:MM:SS` countdow
 
 ```text
 Zenora-Miner/
-├── bot.rb              # Downloader, select and fetch binary for your platform
-├── config.json         # Sleep duration between cycles
-├── data.txt            # Account credentials, email|password one per line
-├── proxy.txt           # Proxies, one per line (optional)
-├── session.json        # Passkey cache per account (auto-generated, keep private)
-├── LICENSE             # License file
+├── bot.rb                        # Downloader, select and fetch binary for your platform
+├── build.rs                      # Build script
+├── Cargo.toml                    # Rust project manifest
+├── Cargo.lock                    # Dependency lock file
+├── Makefile                      # Build shortcuts
+├── run.sh                        # Launcher and process manager
+├── config.json                   # Sleep duration between cycles
+├── data.txt                      # Account credentials, email|password one per line
+├── proxy.txt                     # Proxies, one per line (optional)
+├── session.json                  # Passkey cache per account (auto-generated, keep private)
+├── HOWTO.txt                     # Quick start reference
+├── LICENSE                       # License file
+├── assets/
+│   ├── icon.ico                  # App icon
+│   └── icon.png                  # App icon
 ├── solver/
-│   └── solver.yaml     # Solver worker URL
+│   └── solver.yaml               # Solver worker URL
+├── src/
+│   ├── main.rs                           # Entry point, dispatches to run, probe, or selftest
+│   ├── api/
+│   │   ├── endpoint.rs                   # API paths, base URL, site key, and referer helpers
+│   │   ├── mod.rs
+│   │   └── protocol.rs                   # Handshake, envelope, key derivation, and server signature verification
+│   ├── app/
+│   │   ├── bootstrap.rs                  # Project root, banner, and display text sanitizer
+│   │   └── mod.rs
+│   ├── domain/
+│   │   ├── account.rs                    # Account and proxy models
+│   │   ├── mining.rs                     # Mining state, streak, balance, and ready session parser
+│   │   ├── mod.rs
+│   │   ├── session.rs                    # Passkey cache and vault encrypt/decrypt
+│   │   └── task.rs                       # Campaign and reward list parser
+│   ├── modes/
+│   │   ├── mod.rs
+│   │   ├── probe.rs                      # Checks config, solver, and exit country without running a cycle
+│   │   ├── run.rs                        # Loads accounts and hands off to the cycle runner
+│   │   └── selftest.rs                   # Offline checks for vault, passkey, masking, and config defaults
+│   ├── net/
+│   │   ├── client.rs                     # HTTP client with optional proxy, cookie store, and timeout
+│   │   ├── mod.rs
+│   │   ├── proxy.rs                      # Proxy string parser and normalizer
+│   │   └── solver.rs                     # Solver session, Turnstile task submission, and token polling
+│   ├── ops/
+│   │   ├── mod.rs
+│   │   ├── runner.rs                     # Main cycle loop across all accounts with countdown between cycles
+│   │   ├── auth/
+│   │   │   ├── login.rs                  # Login with email, password, and Turnstile token
+│   │   │   ├── mod.rs
+│   │   │   └── passkey.rs                # Passkey enrollment with OTP and cached assertion signing
+│   │   ├── mining/
+│   │   │   ├── claim.rs                  # Ad flow and session claim submission
+│   │   │   ├── mod.rs
+│   │   │   ├── start.rs                  # Starts a mining block when state is idle
+│   │   │   ├── status.rs                 # Fetches current mining state and balance
+│   │   │   └── streak.rs                 # Daily streak request
+│   │   ├── referral/
+│   │   │   ├── mod.rs
+│   │   │   └── wallet.rs                 # Wallet balance and address report
+│   │   └── task/
+│   │       ├── ads.rs                    # Ad flow: start, select, wait, complete, return token
+│   │       ├── mod.rs
+│   │       └── rewards.rs                # Claims airdrops, giveaways, and ad-gated sponsored tasks
+│   └── support/
+│       ├── banner.rs                     # ASCII banner with timestamp and community link
+│       ├── error.rs                      # Server error code to human-readable message mapper
+│       ├── mod.rs
+│       ├── cfg/
+│       │   ├── loader.rs                 # Loads config.json, data.txt, proxy.txt, and solver.yaml
+│       │   ├── mod.rs
+│       │   └── schema.rs                 # Default config and sleep_seconds extractor
+│       ├── consts/
+│       │   ├── app.rs                    # File path constants and passkey retry count
+│       │   ├── mod.rs
+│       │   └── net.rs                    # Protocol version, solver paths, poll settings, and pinned server key
+│       └── log/
+│           ├── format.rs                 # Green, yellow, and red log line helpers
+│           ├── init.rs                   # Terminal output lock, ANSI colors, and live countdown
+│           └── mod.rs
 └── utils/
-    └── banner.rb       # Banner display on startup
+    └── banner.rb                 # Banner display on startup
 ```
 
 ---
